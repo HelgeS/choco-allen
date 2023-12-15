@@ -31,10 +31,13 @@ package org.chocosolver.solver.constraints.nary.allen;
 
 import org.chocosolver.solver.Cause;
 import org.chocosolver.solver.Model;
+import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.constraints.checker.DomainBuilder;
 import org.chocosolver.solver.exception.ContradictionException;
-import org.chocosolver.solver.search.strategy.SearchStrategyFactory;
+//import org.chocosolver.solver.search.strategy.SearchStrategyFactory;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMin;
+import org.chocosolver.solver.search.strategy.selectors.variables.InputOrder;
 import org.chocosolver.solver.variables.IntVar;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -43,6 +46,7 @@ import org.testng.annotations.Test;
 import java.util.Random;
 
 import static org.chocosolver.solver.constraints.nary.allen.AllenRelationMe.e;
+import static org.chocosolver.solver.search.strategy.Search.intVarSearch;
 
 /**
  * <p>
@@ -178,7 +182,8 @@ public class AllenRelationMeTest {
                         model.intVar(114), model.intVar(2), false));
 
         model.addConstructiveDisjunction(local, disjunctions);
-        model.getSolver().set(SearchStrategyFactory.inputOrderLBSearch(new IntVar[]{bs, ds}));
+        Solver solver = model.getSolver();
+        solver.setSearch(intVarSearch(new InputOrder<>(model), new IntDomainMin(), bs, ds));
         while(model.getSolver().solve());
         Assert.assertEquals(model.getSolver().getSolutionCount(), 4970);
     }
