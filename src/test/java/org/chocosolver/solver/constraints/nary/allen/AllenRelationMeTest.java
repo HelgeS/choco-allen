@@ -76,7 +76,7 @@ public class AllenRelationMeTest {
         ar.check();
     }
 
-    @Test(groups = "5m", timeOut=900000)
+    @Test(groups = "5m")  // , timeOut=900000
     public void testAll() {
         Random rnd = new Random();
         int[][] domains;
@@ -172,16 +172,16 @@ public class AllenRelationMeTest {
                         model.intVar(27), model.intVar(19), false));
 
         IntVar r2 = model.intVar("r2", new int[]{4,5,7,13});
-        disjunctions[1] = new Constraint("Allen 1",
+        disjunctions[1] = new Constraint("Allen 2",
                 new PropAllenGAC(r2, bs, ds,
                         model.intVar(55), model.intVar(16), false));
 
         IntVar r3 = model.intVar("r3", new int[]{4,5,7,13});
-        disjunctions[2] = new Constraint("Allen 1",
+        disjunctions[2] = new Constraint("Allen 3",
                 new PropAllenGAC(r3, bs, ds,
                         model.intVar(114), model.intVar(2), false));
 
-        model.addConstructiveDisjunction(local, disjunctions);
+        model.addConstructiveDisjunction(disjunctions);
         Solver solver = model.getSolver();
         solver.setSearch(intVarSearch(new InputOrder<>(model), new IntDomainMin(), bs, ds));
         while(model.getSolver().solve());

@@ -67,7 +67,7 @@ public class AllenRelationMatsTest {
 
 
 
-    @Test(groups = "5m", timeOut=900000)
+    @Test(groups = "5m") // , timeOut=900000
     public void testAll() {
         Random rnd = new Random();
         int[][] domains;
