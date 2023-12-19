@@ -206,7 +206,7 @@ public class AllenTaskRel extends Constraint {
                                 model.intVar(i_sta[i]), model.intVar(i_end[i] - i_sta[i]),
                                 false));
             }
-            model.addConstructiveDisjunction(global, disjunctions);
+            model.addConstructiveDisjunction(disjunctions);
         }
     }
 }
