@@ -31,9 +31,9 @@ package org.chocosolver.solver.constraints.nary.allen;
 
 import org.chocosolver.solver.ICause;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.ranges.IntIterableRangeSet;
-import org.chocosolver.solver.variables.ranges.IntIterableSet;
-import org.chocosolver.solver.variables.ranges.IntIterableSetUtils;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableRangeSet;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableSet;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableSetUtils;
 
 /**
  * Project: choco.
@@ -229,10 +229,10 @@ public class AllenRelationMats extends AllenRelation{
 
     static {
         SET_INF = new IntIterableRangeSet();
-        SET_INF.setOffset(INF);
+//        SET_INF.setOffset(INF);  // TODO Not sure what this is supposed to do.
         SET_INF.add(INF);
         SET_SUP = new IntIterableRangeSet();
-        SET_SUP.setOffset(SUP);
+//        SET_SUP.setOffset(SUP);  // TODO Not sure what this is supposed to do.
         SET_SUP.add(SUP);
     }
 
@@ -291,12 +291,12 @@ public class AllenRelationMats extends AllenRelation{
     private static boolean FDle(IntIterableRangeSet lb, IntIterableRangeSet ub) {
         assert lb.size() == 1;
         assert ub.size() == 1;
-        return lb.first() <= ub.first();
+        return lb.min() <= ub.min();
     }
 
     private static boolean Tlt(IntIterableRangeSet cur, int a) {
         assert cur.size() == 1;
-        return cur.first() < a;
+        return cur.min() < a;
     }
 
     /**
@@ -327,14 +327,14 @@ public class AllenRelationMats extends AllenRelation{
                                                           IntIterableRangeSet sOi, IntIterableRangeSet sOj,
                                                           IntIterableRangeSet sLi, IntIterableRangeSet sLj) {
         IntIterableRangeSet[] stack = new IntIterableRangeSet[10];
-        int minoi = sOi.first();
-        int maxoi = sOi.last();
-        int minoj = sOj.first();
-        int maxoj = sOj.last();
-        int minli = sLi.first();
-        int maxli = sLi.last();
-        int minlj = sLj.first();
-        int maxlj = sLj.last();
+        int minoi = sOi.min();
+        int maxoi = sOi.max();
+        int minoj = sOj.min();
+        int maxoj = sOj.max();
+        int minli = sLi.min();
+        int maxli = sLi.max();
+        int minlj = sLj.min();
+        int maxlj = sLj.max();
         int tos = 0;
         IntIterableRangeSet lb, ub, cur;
 
@@ -449,7 +449,7 @@ public class AllenRelationMats extends AllenRelation{
                     lb = stack[--tos];
                     assert lb.size() == 1 && ub.size() == 1;
                     if (FDle(lb, ub))
-                        stack[tos - 1] = fd_union_interval(stack[tos - 1], lb.first(), ub.first());
+                        stack[tos - 1] = fd_union_interval(stack[tos - 1], lb.min(), ub.min());
                     break;
                 case AI_BEGIN_DISJUNCT:	/* noop */
                     break;
@@ -480,7 +480,7 @@ public class AllenRelationMats extends AllenRelation{
                         cur = EMPTY_SET;
                     else {
                         assert cur.size() == 1;
-                        cur = fd_interval(1, cur.first());
+                        cur = fd_interval(1, cur.min());
                     }
                     stack[tos++] = cur;
                     break;
@@ -494,14 +494,14 @@ public class AllenRelationMats extends AllenRelation{
                     if (stack[tos - 1] == SET_SUP)
                         stack[tos - 1] = SET_INF;
                     else
-                        stack[tos - 1] = new IntIterableRangeSet(maxlj - stack[tos - 1].first());
+                        stack[tos - 1] = new IntIterableRangeSet(maxlj - stack[tos - 1].min());
                     break;
                 case AI_ADD_TO_MINLJ:
                     if (stack[tos - 1] == SET_SUP)
                         stack[tos - 1] = SET_SUP;
                     else
 //                        stack[tos - 1] = MakeSmall(minlj + GetSmall(stack[tos - 1]));
-                        stack[tos - 1] = new IntIterableRangeSet(minlj + stack[tos - 1].first());
+                        stack[tos - 1] = new IntIterableRangeSet(minlj + stack[tos - 1].min());
                     break;
                 case AI_SETPLUS:
                     cur = stack[--tos];
