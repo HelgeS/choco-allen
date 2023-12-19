@@ -1,21 +1,21 @@
 /**
  * Copyright (c) 2015, Ecole des Mines de Nantes
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ * notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *    This product includes software developed by the <organization>.
+ * must display the following acknowledgement:
+ * This product includes software developed by the <organization>.
  * 4. Neither the name of the <organization> nor the
- *    names of its contributors may be used to endorse or promote products
- *    derived from this software without specific prior written permission.
- *
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -31,10 +31,10 @@ package org.chocosolver.solver.constraints.nary.allen;
 
 import org.chocosolver.solver.ICause;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.ranges.IntIterableRangeSet;
-import org.chocosolver.solver.variables.ranges.IntIterableSetUtils;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableRangeSet;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableSetUtils;
 
-import static org.chocosolver.solver.variables.ranges.IntIterableSetUtils.intersectionOf;
+import static org.chocosolver.util.objects.setDataStructures.iterable.IntIterableSetUtils.intersectionOf;
 
 /**
  * Project: choco.
@@ -42,7 +42,7 @@ import static org.chocosolver.solver.variables.ranges.IntIterableSetUtils.inters
  * @author Charles Prud'homme
  * @since 08/01/2016.
  */
-public class AllenRelationMe extends AllenRelation{
+public class AllenRelationMe extends AllenRelation {
 
     /**
      * Temporary structure, for filter
@@ -70,7 +70,6 @@ public class AllenRelationMe extends AllenRelation{
     }
 
 
-
     /**
      * Compute the forbidden region for Oi and Li wrt to Oj and Lj and relation pc
      *
@@ -91,63 +90,83 @@ public class AllenRelationMe extends AllenRelation{
             default:
                 throw new UnsupportedOperationException();
             case b: { // forbidden region for Oi with before
-                change = sOi.removeBetween(sOj.last() - sLi.first(), sOi.last());
+                if (sOj.max() - sLi.min() <= sOi.max()) {
+                    change = sOi.removeBetween(sOj.max() - sLi.min(), sOi.max());
+                } else {
+                    change = false;
+                }
                 break;
             }
             case b + 13: { // forbidden region for Li with before
-                change = sLi.removeBetween(sOj.last() - sOi.first(), sLi.last());
+                if (sOj.max() - sOi.min() <= sLi.max()) {
+                    change = sLi.removeBetween(sOj.max() - sOi.min(), sLi.max());
+                } else {
+                    change = false;
+                }
                 break;
             }
             case bi: { // forbidden region for Oi with before inverse
-                change = sOi.removeBetween(sOi.first(), sOj.first() + sLj.first());
+                if (sOi.min() <= sOj.min() + sLj.min()) {
+                    change = sOi.removeBetween(sOi.min(), sOj.min() + sLj.min());
+                } else {
+                    change = false;
+                }
                 break;
             }
             case bi + 13: // no forbidden region for Li with before inverse
                 break;
             case d: { // allowed region for Oi with during
                 tmp1.clear();
-                int last = sLj.last() - sLi.first() - 1;
-                for (int a = sOj.first(); a <= sOj.last(); a = sOj.nextValue(a)) {
+                int last = sLj.max() - sLi.min() - 1;
+                for (int a = sOj.min(); a <= sOj.max(); a = sOj.nextValue(a)) {
                     for (int b = 1; b <= last; b++) {
                         tmp1.add(a + b);
                     }
                 }
 
                 tmp1.clear();
-                IntIterableSetUtils.plus(tmp1, sOj, 1, sLj.last() - sLi.first() - 1);
+                IntIterableSetUtils.plus(tmp1, sOj, 1, sLj.max() - sLi.min() - 1);
                 change = intersectionOf(sOi, tmp1);
                 break;
             }
             case d + 13: {// forbidden region for Li with during
                 int min = Integer.MAX_VALUE;
-                for (int c = sOj.first(); c <= sOj.last(); c = sOj.nextValue(c)) {
-                    for (int a = sOi.nextValue(c); a <= sOi.last(); a = sOi.nextValue(a)) {
+                for (int c = sOj.min(); c <= sOj.max(); c = sOj.nextValue(c)) {
+                    for (int a = sOi.nextValue(c); a <= sOi.max(); a = sOi.nextValue(a)) {
                         if (min > a - c) {
                             min = a - c;
                         }
                     }
                 }
 //                assert min < Integer.MAX_VALUE;
-                change = sLi.removeBetween(sLj.last() - min, sLi.last());
+                if (sLj.max() - min <= sLi.max()) {
+                    change = sLi.removeBetween(sLj.max() - min, sLi.max());
+                } else {
+                    change = false;
+                }
                 break;
             }
             case di: { // allowed region for Oi with during inverse
                 tmp1.clear();
-                IntIterableSetUtils.plus(tmp1, sOj, sLj.first() - sLi.last() + 1, -1);
+                IntIterableSetUtils.plus(tmp1, sOj, sLj.min() - sLi.max() + 1, -1);
                 change = intersectionOf(sOi, tmp1);
                 break;
             }
             case di + 13: {// forbidden region for Li with during
                 int min = Integer.MAX_VALUE;
-                for (int a = sOi.first(); a <= sOi.last(); a = sOi.nextValue(a)) {
-                    for (int c = sOj.nextValue(a); c <= sOj.last(); c = sOj.nextValue(c)) {
+                for (int a = sOi.min(); a <= sOi.max(); a = sOi.nextValue(a)) {
+                    for (int c = sOj.nextValue(a); c <= sOj.max(); c = sOj.nextValue(c)) {
                         if (min > c - a) {
                             min = c - a;
                         }
                     }
                 }
                 assert min < Integer.MAX_VALUE;
-                change = sLi.removeBetween(sLi.first(), sLj.first() + min);
+                if (sLi.min() <= sLj.min() + min) {
+                    change = sLi.removeBetween(sLi.min(), sLj.min() + min);
+                } else {
+                    change = false;
+                }
                 break;
             }
             case e: { // allowed region for Oi with equal
@@ -161,20 +180,20 @@ public class AllenRelationMe extends AllenRelation{
             case f: { // allowed region for Oi with finish
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = sLi.first(); d <= sLi.last(); d = sLi.nextValue(d)) {
-                    for (int c = sLj.nextValue(d); c <= sLj.last(); c = sLj.nextValue(c)) {
+                for (int d = sLi.min(); d <= sLi.max(); d = sLi.nextValue(d)) {
+                    for (int c = sLj.nextValue(d); c <= sLj.max(); c = sLj.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
                 IntIterableSetUtils.plus(tmp2, tmp1, sOj);
-                change = IntIterableSetUtils.intersectionOf(sOi, tmp2);
+                change = intersectionOf(sOi, tmp2);
                 break;
             }
             case f + 13: { // allowed region for Li with finish
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = sOj.first(); d <= sOj.last(); d = sOj.nextValue(d)) {
-                    for (int c = sOi.nextValue(d); c <= sOi.last(); c = sOi.nextValue(c)) {
+                for (int d = sOj.min(); d <= sOj.max(); d = sOj.nextValue(d)) {
+                    for (int c = sOi.nextValue(d); c <= sOi.max(); c = sOi.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
@@ -185,8 +204,8 @@ public class AllenRelationMe extends AllenRelation{
             case fi: { // allowed region for Oi with finish inverse
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = sLj.first(); d <= sLj.last(); d = sLj.nextValue(d)) {
-                    for (int c = sLi.nextValue(d); c <= sLi.last(); c = sLi.nextValue(c)) {
+                for (int d = sLj.min(); d <= sLj.max(); d = sLj.nextValue(d)) {
+                    for (int c = sLi.nextValue(d); c <= sLi.max(); c = sLi.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
@@ -197,8 +216,8 @@ public class AllenRelationMe extends AllenRelation{
             case fi + 13: { // allowed region for Li with finish inverse
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = sOi.first(); d <= sOi.last(); d = sOi.nextValue(d)) {
-                    for (int c = sOj.nextValue(d); c <= sOj.last(); c = sOj.nextValue(c)) {
+                for (int d = sOi.min(); d <= sOi.max(); d = sOi.nextValue(d)) {
+                    for (int c = sOj.nextValue(d); c <= sOj.max(); c = sOj.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
@@ -229,8 +248,8 @@ public class AllenRelationMe extends AllenRelation{
             case o: { // allowed region for Oi with overlap
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = 1; d <= sLj.last() - 1; d++) {
-                    for (int c = sLi.nextValue(d); c <= sLi.last(); c = sLi.nextValue(c)) {
+                for (int d = 1; d <= sLj.max() - 1; d++) {
+                    for (int c = sLi.nextValue(d); c <= sLi.max(); c = sLi.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
@@ -241,20 +260,20 @@ public class AllenRelationMe extends AllenRelation{
             case o + 13: { // allowed region for Li with overlap
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = sOi.first(); d <= sOi.last(); d = sOi.nextValue(d)) {
-                    for (int c = sOj.nextValue(d); c <= sOj.last(); c = sOj.nextValue(c)) {
+                for (int d = sOi.min(); d <= sOi.max(); d = sOi.nextValue(d)) {
+                    for (int c = sOj.nextValue(d); c <= sOj.max(); c = sOj.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
-                IntIterableSetUtils.plus(tmp2, tmp1, 1, sLj.last() - 1);
+                IntIterableSetUtils.plus(tmp2, tmp1, 1, sLj.max() - 1);
                 change = intersectionOf(sLi, tmp2);
                 break;
             }
             case oi: { // allowed region for Oi with overlap inverse
                 tmp1.clear();
                 tmp2.clear();
-                for (int d = 1; d <= sLi.last() - 1; d++) {
-                    for (int c = sLj.nextValue(d); c <= sLj.last(); c = sLj.nextValue(c)) {
+                for (int d = 1; d <= sLi.max() - 1; d++) {
+                    for (int c = sLj.nextValue(d); c <= sLj.max(); c = sLj.nextValue(c)) {
                         tmp1.add(c - d);
                     }
                 }
@@ -264,8 +283,8 @@ public class AllenRelationMe extends AllenRelation{
             }
             case oi + 13: { // forbidden region for Li with overlap inverse
                 int min = Integer.MAX_VALUE;
-                for (int a = sOj.first(); a <= sOj.last(); a = sOj.nextValue(a)) {
-                    for (int b = sLj.first(); b <= sLj.last(); b = sLj.nextValue(b)) {
+                for (int a = sOj.min(); a <= sOj.max(); a = sOj.nextValue(a)) {
+                    for (int b = sLj.min(); b <= sLj.max(); b = sLj.nextValue(b)) {
                         for (int c = sOi.nextValue(a); c <= sOi.previousValue(a + b); c = sOi.nextValue(c)) {
                             if (/*a < c && c < a + b && */min > a - c + b) {
                                 min = a + b - c;
@@ -273,7 +292,11 @@ public class AllenRelationMe extends AllenRelation{
                         }
                     }
                 }
-                change = sLi.removeBetween(sLi.first(), min);
+                if (sLi.min() <= min) {
+                    change = sLi.removeBetween(sLi.min(), min);
+                } else {
+                    change = false;
+                }
                 break;
             }
             case s: { // allowed region for Oi with start
@@ -281,7 +304,11 @@ public class AllenRelationMe extends AllenRelation{
                 break;
             }
             case s + 13: { // forbidden region for Li with start
-                change = sLi.removeBetween(sLj.last(), sLi.last());
+                if (sLj.max() <= sLi.max()) {
+                    change = sLi.removeBetween(sLj.max(), sLi.max());
+                } else {
+                    change = false;
+                }
                 break;
             }
             case si: { // allowed region for Oi with start inverse
@@ -289,7 +316,11 @@ public class AllenRelationMe extends AllenRelation{
                 break;
             }
             case si + 13: { // forbidden region for Li with start inverse
-                change = sLi.removeBetween(sLi.first(), sLj.first());
+                if (sLi.min() <= sLj.min()) {
+                    change = sLi.removeBetween(sLi.min(), sLj.min());
+                } else {
+                    change = false;
+                }
                 break;
             }
         }
@@ -311,20 +342,20 @@ public class AllenRelationMe extends AllenRelation{
         int change;
         int cintrel = converse[extrel];
 //        do {
-            change = 0;
-            /* must check at least one variable */
-            if (forbidden_region(extrel, sOi, sOj, sLi, sLj)) {
-                change |= sOi.size() > 0 ? 1 : -1;
-            }
-            if (change >= 0 && /*sLi.size() > 1 &&*/ forbidden_region(extrel + 13, sOi, sOj, sLi, sLj)) {
-                change |= sLi.size() > 0 ? 1 : -1;
-            }
-            if (change >= 0 && /*sOj.size() > 1 &&*/ forbidden_region(cintrel, sOj, sOi, sLj, sLi)) {
-                change |= sOj.size() > 0 ? 1 : -1;
-            }
-            if (change >= 0 && /*sLj.size() > 1 &&*/ forbidden_region(cintrel + 13, sOj, sOi, sLj, sLi)) {
-                change |= sLj.size() > 0 ? 1 : -1;
-            }
+        change = 0;
+        /* must check at least one variable */
+        if (forbidden_region(extrel, sOi, sOj, sLi, sLj)) {
+            change |= sOi.size() > 0 ? 1 : -1;
+        }
+        if (change >= 0 && /*sLi.size() > 1 &&*/ forbidden_region(extrel + 13, sOi, sOj, sLi, sLj)) {
+            change |= sLi.size() > 0 ? 1 : -1;
+        }
+        if (change >= 0 && /*sOj.size() > 1 &&*/ forbidden_region(cintrel, sOj, sOi, sLj, sLi)) {
+            change |= sOj.size() > 0 ? 1 : -1;
+        }
+        if (change >= 0 && /*sLj.size() > 1 &&*/ forbidden_region(cintrel + 13, sOj, sOi, sLj, sLi)) {
+            change |= sLj.size() > 0 ? 1 : -1;
+        }
 //        } while (change > 0);
         return change;
     }
