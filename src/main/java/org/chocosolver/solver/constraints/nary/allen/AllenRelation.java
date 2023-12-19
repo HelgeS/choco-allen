@@ -32,8 +32,8 @@ package org.chocosolver.solver.constraints.nary.allen;
 import org.chocosolver.solver.ICause;
 import org.chocosolver.solver.exception.ContradictionException;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.solver.variables.ranges.IntIterableRangeSet;
-import org.chocosolver.solver.variables.ranges.IntIterableSetUtils;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableRangeSet;
+import org.chocosolver.util.objects.setDataStructures.iterable.IntIterableSetUtils;
 
 import java.util.BitSet;
 
@@ -205,10 +205,10 @@ public abstract class AllenRelation {
         }
         int lr = Rel.getUB();
         for (int r = Rel.getLB(); r <= lr; r = Rel.nextValue(r)) {
-            IntIterableSetUtils.copyIn(Oi, sOi);
-            IntIterableSetUtils.copyIn(Li, sLi);
-            IntIterableSetUtils.copyIn(Oj, sOj);
-            IntIterableSetUtils.copyIn(Lj, sLj);
+            sOi.copyFrom(Oi);
+            sLi.copyFrom(Li);
+            sOj.copyFrom(Oj);
+            sLj.copyFrom(Lj);
             int rc = prune_relation(r, sOi, sLi, sOj, sLj);
             if (rc < 0) {
                 Rel.removeValue(r, cause);
